@@ -23,9 +23,6 @@ import java.util.List;
 public class ApplicationRunners {
 
     private final OrderService orderService;
-    private final OrderManager orderManager;
-    private final OrderDetailManager orderDetailManager;
-    private final OrderFavorDetailManager orderFavorDetailManager;
 
     @Bean
     public ApplicationRunner initializeData() {
@@ -33,34 +30,9 @@ public class ApplicationRunners {
             Flux.range(1, 10)
                     .map(integer -> Integer.toString(integer))
                     .map(memberNumber -> TestOrders.createTestOrder(memberNumber, "name" + memberNumber))
-                    // 여기부터 Service
-                    .flatMap(orderManager::saveOrder)
-                    .flatMap(this::saveOrderDetailFromOrder)
-                    .flatMap(this::saveOrderFavorDetailFromOrder)
+                    .flatMap(orderService::saveOrder)
                     .subscribe();
 
         };
-    }
-
-    private Mono<OmOd> saveOrderDetailFromOrder(OmOd order) {
-        String orderNo = order.getOdNo();
-        List<OmOdDtl> copyList = new ArrayList<>(order.getOmOdDtlList());
-        for (OmOdDtl orderDetail : copyList) {
-            orderDetail.setOdNo(orderNo);
-        }
-        return Mono.just(copyList)
-                .flatMap(orderDetailManager::save)
-                .zipWith(Mono.just(order), (omOdDtls, omOd) -> omOd.withOmOdDtlList(omOdDtls));
-    }
-
-    private Mono<OmOd> saveOrderFavorDetailFromOrder(OmOd order) {
-        String orderNo = order.getOdNo();
-        List<OmOdFvrDtl> copyList = new ArrayList<>(order.getOmOdFvrDtlList());
-        for (OmOdFvrDtl favorDetail : copyList) {
-            favorDetail.setOdNo(orderNo);
-        }
-        return Mono.just(copyList)
-                .flatMap(orderFavorDetailManager::save)
-                .zipWith(Mono.just(order), (omOdFvrDtls, omOd) -> omOd.withOmOdFvrDtlList(omOdFvrDtls));
     }
 }
