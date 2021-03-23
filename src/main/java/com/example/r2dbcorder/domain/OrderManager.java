@@ -16,15 +16,8 @@ public class OrderManager {
 
     private final OrderRepository orderRepository;
 
-    public Mono<OmOd> save(OmOd order) {
+    public Mono<OmOd> saveOrder(OmOd order) {
         // validation
         return orderRepository.save(order);
     }
-
-    public OmOd setOrderNoToOrderDetail(OmOd order) {
-        List<OmOdDtl> orderDetails = new ArrayList<>(order.getOmOdDtlList());
-        orderDetails.forEach(detail -> detail.setOdNo(order.getOdNo()));
-        return order.withOmOdDtlList(orderDetails);
-    }
-
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.With;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -13,6 +14,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
+@With
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("OM_OD_FVR_DTL")

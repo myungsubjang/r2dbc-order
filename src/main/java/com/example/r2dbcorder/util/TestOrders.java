@@ -2,6 +2,7 @@ package com.example.r2dbcorder.util;
 
 import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
+import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -14,7 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TestOrders {
 
-    private static final AtomicInteger sequence = new AtomicInteger();
+    private static AtomicInteger orderSeq = new AtomicInteger();
+    private static AtomicInteger favorSeq = new AtomicInteger();
 
     public static String generateOrderNumber() {
         return getTodayStr() + getLeadingZeroSeq();
@@ -26,33 +28,61 @@ public class TestOrders {
     }
 
     private static String getLeadingZeroSeq() {
-        int generatedSeq = sequence.incrementAndGet();
+        int generatedSeq = orderSeq.incrementAndGet();
         return String.format("%05d", generatedSeq);
+    }
+
+    public static String generateOrderFavorNumber() {
+        return Integer.toString(favorSeq.incrementAndGet());
     }
 
     public static OmOd createTestOrder(String memberNo, String nameWhoOrder) {
         OmOd newOrder = new OmOd();
         newOrder.setMbNo(memberNo);
         newOrder.setOdrNm(nameWhoOrder);
-        newOrder.setOmOdDtlList(createTestOrderDetail(ThreadLocalRandom.current().nextInt(1, 10), memberNo));
+        List<OmOdDtl> testOrderDetails = createTestOrderDetails(ThreadLocalRandom.current().nextInt(1, 10), memberNo);
+        newOrder.setOmOdDtlList(testOrderDetails);
+        List<OmOdFvrDtl> testOrderFavorDetails = createTestOrderFavorDetails(testOrderDetails);
+        newOrder.setOmOdFvrDtlList(testOrderFavorDetails);
         return newOrder;
     }
 
-    private static List<OmOdDtl> createTestOrderDetail(int size, String memberNo) {
+    private static List<OmOdDtl> createTestOrderDetails(int size, String memberNo) {
         List<OmOdDtl> orderDetails = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             OmOdDtl orderDetail = new OmOdDtl();
+            orderDetail.setOdSeq(i + 1);
+            orderDetail.setProcSeq(1);
+            orderDetail.setOdTypCd("10");
+            orderDetail.setOdPrgsStepCd("01");
             orderDetail.setMbNo(memberNo);
             TestProduct product = TestProduct.randomProduct();
             int randomOrderQuantity = ThreadLocalRandom.current().nextInt(1, 10);
             orderDetail.setOdQty(randomOrderQuantity);
             orderDetail.setSlPrc(randomOrderQuantity * product.getPrice());
-            orderDetail.setDcAmt(2000);
+            orderDetail.setDcAmt(0);
             orderDetail.setPdNo(product.getPdNo());
             orderDetail.setPdNm(product.getPdNm());
             orderDetails.add(orderDetail);
         }
         return orderDetails;
+    }
+
+    private static List<OmOdFvrDtl> createTestOrderFavorDetails(List<OmOdDtl> orderDetails) {
+        List<OmOdFvrDtl> favorDetails = new ArrayList<>();
+        for (OmOdDtl orderDetail : orderDetails) {
+            OmOdFvrDtl favorDetail = new OmOdFvrDtl();
+            favorDetail.setOdSeq(orderDetail.getOdSeq());
+            favorDetail.setProcSeq(orderDetail.getProcSeq());
+            favorDetail.setOdFvrDvsCd("HAPN");
+            favorDetail.setDcTnnoCd("1st");
+            favorDetail.setAplyQty(ThreadLocalRandom.current().nextInt(1, orderDetail.getOdQty() + 1));
+            favorDetail.setFvrAmt((orderDetail.getSlPrc() / orderDetail.getOdQty()) * favorDetail.getAplyQty() / 10);
+            favorDetail.setPrNo("1");
+            favorDetail.setPrNm("임시프로모션");
+            favorDetails.add(favorDetail);
+        }
+        return favorDetails;
     }
 
     private enum TestProduct {
