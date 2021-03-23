@@ -1,4 +1,4 @@
-package com.example.r2dbcorder.config;
+package com.example.r2dbcorder.config.persistence;
 
 import io.r2dbc.spi.ConnectionFactory;
 import org.springframework.context.annotation.Bean;
@@ -35,4 +35,6 @@ public class PersistenceConfig {
     ReactiveTransactionManager transactionManager(ConnectionFactory connectionFactory) {
         return new R2dbcTransactionManager(connectionFactory);
     }
+
+
 }
