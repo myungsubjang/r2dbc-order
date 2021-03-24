@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -38,4 +38,11 @@ public class OrderDetailDao {
         return orderDetailRepository.findIDtoByOdNo(odNo)
                 .collectList();
     }
+
+    public <T> Mono<? extends List<T>> findTypeByOdNo(String odNo, Class<T> type) {
+        // enummap으로 제공하는게 나을듯?
+        return orderDetailRepository.findTypeByOdNo(odNo, type).collectList();
+    }
+
+
 }

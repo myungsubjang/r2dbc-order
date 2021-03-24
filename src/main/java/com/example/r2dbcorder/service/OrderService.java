@@ -88,4 +88,17 @@ public class OrderService {
         return orderDetailDao.findIDtoByOdNo(odNo);
     }
 
+    public Mono<? extends List<?>> findTypeByOdNo(String odNo, String type) {
+        if (type.equals("dto")) {
+            return orderDetailDao.findTypeByOdNo(odNo, OdDtlDto.class);
+        }
+        return orderDetailDao.findTypeByOdNo(odNo, IOdDtlDto.class);
+    }
+
+    //projection을 다이나믹하게 구성해보기
+//    public Mono<OmOd> findOrderByOdNoAndType(String odNo, String type) {
+//         // 프로젝션에 대한 함수를 다이나믹하게 결정.
+//
+//    }
+
 }

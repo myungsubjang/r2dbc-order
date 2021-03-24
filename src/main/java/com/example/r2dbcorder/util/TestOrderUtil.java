@@ -38,7 +38,7 @@ public class TestOrderUtil {
     }
 
     public static OmOd createTestOrder(String memberNo, String name) {
-
+        //TODO 클래스 분리
         OmOd newOrder = new OmOd();
         newOrder.setMbNo(memberNo);
         newOrder.setOdrNm(name);

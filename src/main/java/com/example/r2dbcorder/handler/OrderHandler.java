@@ -37,4 +37,11 @@ public class OrderHandler {
         return orderService.findIDtoByOdNo(odNo)
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
+
+    public Mono<ServerResponse> findTypeByOdNo(ServerRequest request) {
+        String odNo = request.pathVariable("odNo");
+        String type = request.pathVariable("type");
+        return orderService.findTypeByOdNo(odNo, type)
+                .flatMap(ServerResponse.ok()::bodyValue);
+    }
 }
