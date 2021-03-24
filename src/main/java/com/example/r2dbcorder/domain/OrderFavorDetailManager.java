@@ -16,6 +16,7 @@ public class OrderFavorDetailManager {
     private final OrderFavorDetailRepository orderFavorDetailRepository;
 
     public Mono<List<OmOdFvrDtl>> save(List<OmOdFvrDtl> favorDetails) {
+        //validation
         return Flux.fromIterable(favorDetails)
                 .flatMap(orderFavorDetailRepository::save)
                 .collectList();

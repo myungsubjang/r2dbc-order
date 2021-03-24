@@ -1,6 +1,7 @@
 package com.example.r2dbcorder.domain;
 
 import com.example.r2dbcorder.repository.OrderDetailRepository;
+import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,9 +18,15 @@ public class OrderDetailManager {
     private final OrderDetailRepository orderDetailRepository;
 
     public Mono<List<OmOdDtl>> save(List<OmOdDtl> orderDetails) {
+        //validation
         return Flux.fromIterable(orderDetails)
                 .flatMap(orderDetailRepository::save)
                 .collectList();
     }
 
+
+    public Mono<List<OmOdDtl>> findOrderDetailByOdNo(String odNo) {
+        return orderDetailRepository.findByOdNo(odNo)
+                .collectList();
+    }
 }

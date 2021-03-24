@@ -3,7 +3,7 @@ package com.example.r2dbcorder.service;
 import com.example.r2dbcorder.domain.OrderDetailManager;
 import com.example.r2dbcorder.domain.OrderFavorDetailManager;
 import com.example.r2dbcorder.domain.OrderManager;
-import com.example.r2dbcorder.repository.OrderRepository;
+import com.example.r2dbcorder.exceptions.OrderNotFoundException;
 import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;
@@ -30,8 +30,8 @@ public class OrderService {
     }
 
     private Mono<OmOd> saveOrderDetailFromOrder(OmOd order) {
-        String orderNo = order.getOdNo();
         List<OmOdDtl> copyList = new ArrayList<>(order.getOmOdDtlList());
+        String orderNo = order.getOdNo();
         for (OmOdDtl orderDetail : copyList) {
             orderDetail.setOdNo(orderNo);
         }
@@ -41,8 +41,8 @@ public class OrderService {
     }
 
     private Mono<OmOd> saveOrderFavorDetailFromOrder(OmOd order) {
-        String orderNo = order.getOdNo();
         List<OmOdFvrDtl> copyList = new ArrayList<>(order.getOmOdFvrDtlList());
+        String orderNo = order.getOdNo();
         for (OmOdFvrDtl favorDetail : copyList) {
             favorDetail.setOdNo(orderNo);
         }
@@ -51,4 +51,21 @@ public class OrderService {
                 .zipWith(Mono.just(order), (omOdFvrDtls, omOd) -> omOd.withOmOdFvrDtlList(omOdFvrDtls));
     }
 
+    public Mono<OmOd> findOrderByOdNo(String odNo) {
+        return Mono.just(odNo)
+                .flatMap(orderManager::findByOdNo)
+                .flatMap(this::findOrderDetailWithOrder)
+                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo)); // exception 멈추고 리턴되는지?
+    }
+
+    private OmOd nullOmOd(String odNo) {
+        OmOd nullOrder = new OmOd();
+        nullOrder.setOdNo(odNo + " dosen't exists");
+        return nullOrder;
+    }
+
+    private Mono<OmOd> findOrderDetailWithOrder(OmOd order) {
+        return Mono.just(order)
+                .zipWith(orderDetailManager.findOrderDetailByOdNo(order.getOdNo()), OmOd::withOmOdDtlList);
+    }
 }

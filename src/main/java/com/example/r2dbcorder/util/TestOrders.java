@@ -3,6 +3,7 @@ package com.example.r2dbcorder.util;
 import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;
+import org.springframework.util.Assert;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -40,25 +41,31 @@ public class TestOrders {
         OmOd newOrder = new OmOd();
         newOrder.setMbNo(memberNo);
         newOrder.setOdrNm(nameWhoOrder);
-        List<OmOdDtl> testOrderDetails = createTestOrderDetails(ThreadLocalRandom.current().nextInt(1, 10), memberNo);
+        List<OmOdDtl> testOrderDetails = createTestOrderDetails(randomNoBoundProductSize(), memberNo);
         newOrder.setOmOdDtlList(testOrderDetails);
         List<OmOdFvrDtl> testOrderFavorDetails = createTestOrderFavorDetails(testOrderDetails);
         newOrder.setOmOdFvrDtlList(testOrderFavorDetails);
         return newOrder;
     }
 
-    private static List<OmOdDtl> createTestOrderDetails(int size, String memberNo) {
+    private static int randomNoBoundProductSize() {
+        return ThreadLocalRandom.current().nextInt(1, TestProduct.SIZE + 1);
+    }
+
+    private static List<OmOdDtl> createTestOrderDetails(int orderDtlSize, String memberNo) {
+        Assert.state(orderDtlSize <= TestProduct.SIZE + 1, "Order detail size must less than test products size!");
         List<OmOdDtl> orderDetails = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
+        List<TestProduct> testProducts = randomOrderingProducts();
+        for (int i = 0; i < orderDtlSize; i++) {
             OmOdDtl orderDetail = new OmOdDtl();
             orderDetail.setOdSeq(i + 1);
             orderDetail.setProcSeq(1);
             orderDetail.setOdTypCd("10");
             orderDetail.setOdPrgsStepCd("01");
             orderDetail.setMbNo(memberNo);
-            TestProduct product = TestProduct.randomProduct();
             int randomOrderQuantity = ThreadLocalRandom.current().nextInt(1, 10);
             orderDetail.setOdQty(randomOrderQuantity);
+            TestProduct product = testProducts.get(i);
             orderDetail.setSlPrc(randomOrderQuantity * product.getPrice());
             orderDetail.setDcAmt(0);
             orderDetail.setPdNo(product.getPdNo());
@@ -66,6 +73,12 @@ public class TestOrders {
             orderDetails.add(orderDetail);
         }
         return orderDetails;
+    }
+
+    private static List<TestProduct> randomOrderingProducts() {
+        List<TestProduct> products = Arrays.asList(TestProduct.values());
+        Collections.shuffle(products);
+        return products;
     }
 
     private static List<OmOdFvrDtl> createTestOrderFavorDetails(List<OmOdDtl> orderDetails) {
