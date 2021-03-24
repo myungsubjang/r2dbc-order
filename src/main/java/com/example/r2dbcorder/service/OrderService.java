@@ -58,12 +58,25 @@ public class OrderService {
     }
 
     public Mono<OmOd> findOrderByOdNo(String odNo) {
-        return Mono.just(odNo)
-                .flatMap(orderDao::findByOdNo)
-                .flatMap(this::findOrderDetailFromOd)
-                .flatMap(this::findOrderFvrDetailFromOd)
-                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo)); // exception발생하면 바로 리턴하네
-//        return findOrderByOdNozz(odNo, this::findOrderDetailFromOd, this::findOrderFvrDetailFromOd);
+//        return Mono.just(odNo)
+//                .flatMap(orderDao::findByOdNo)
+//                .flatMap(this::findAllDetailFromOd)
+//                .flatMap(this::findAllFvrDetailFromOd)
+//                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
+
+        return findOrderByOdNoFunCompositionzz(
+                findJustOrderByOdNo(odNo),
+                order -> findAllDetailFromOd(order),
+                order -> findAllFvrDetailFromOd(order)
+        );
+    }
+
+    public Mono<OmOd> findOrderOverPrice(String odNo, int price) {
+        return findOrderByOdNoFunCompositionzz(
+                findJustOrderByOdNo(odNo),
+                omOd -> overPriceDetail(omOd, price),
+                omOd -> findAllFvrDetailFromOd(omOd)
+        );
     }
 
     private Mono<OmOd> findOrderByOdNoFunComposition(String odNo, Function<OmOd, Mono<OmOd>> detailFun, Function<OmOd, Mono<OmOd>> favorFun) {
@@ -74,11 +87,15 @@ public class OrderService {
                 .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
     }
 
-    //Builder를 사용해서 어디까지 가져올 것인지 정하고 넣기?
-    public Mono<OmOd> findOrderOverPrice(String odNo, int price) {
-        return findOrderByOdNoFunComposition(odNo,
-                omOd -> overPriceDetail(omOd, price),
-                this::findOrderFvrDetailFromOd);
+    private Mono<OmOd> findOrderByOdNoFunCompositionzz(Mono<OmOd> order, Function<OmOd, Mono<OmOd>> detailFun, Function<OmOd, Mono<OmOd>> favorFun) {
+        return order.flatMap(detailFun)
+                .flatMap(favorFun);
+    }
+
+    private Mono<OmOd> findJustOrderByOdNo(String odNo) {
+        return Mono.just(odNo)
+                .flatMap(orderDao::findByOdNo)
+                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
     }
 
     private Mono<OmOd> overPriceDetail(OmOd order, int price) {
@@ -92,20 +109,15 @@ public class OrderService {
         return nullOrder;
     }
 
-    private Mono<OmOd> findOrderDetailFromOd(OmOd order) {
+    private Mono<OmOd> findAllDetailFromOd(OmOd order) {
         return Mono.just(order)
-                .zipWith(orderDetailDao.findOrderDetailByOdNo(order.getOdNo()), OmOd::withOmOdDtlList);
+                .zipWith(orderDetailDao.findAllDetailByOdNo(order.getOdNo()), OmOd::withOmOdDtlList);
     }
 
-    private Mono<OmOd> findOrderFvrDetailFromOd(OmOd order) {
+    private Mono<OmOd> findAllFvrDetailFromOd(OmOd order) {
         return Mono.just(order)
-                .zipWith(orderFavorDetailDao.findByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
+                .zipWith(orderFavorDetailDao.findAllByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
     }
-
-//    private <T> Mono<OmOd> test(OmOd order, Mono<T> other, BiFunction<? super OmOd, ? super T, ? extends OmOd> combinator) {
-//        return Mono.just(order)
-//                .zipWith(other, combinator);
-//    }
 
     public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {
         return orderDetailDao.findDtoByOdNo(odNo);
@@ -121,11 +133,4 @@ public class OrderService {
         }
         return orderDetailDao.findTypeByOdNo(odNo, IOdDtlDto.class);
     }
-
-    //projection을 다이나믹하게 구성해보기
-//    public Mono<OmOd> findOrderByOdNoAndType(String odNo, String type) {
-         // 프로젝션에 대한 함수를 다이나믹하게 결정.
-
-//    }
-
 }

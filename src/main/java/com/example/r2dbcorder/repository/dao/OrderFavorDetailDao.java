@@ -22,7 +22,7 @@ public class OrderFavorDetailDao {
                 .collectList();
     }
 
-    public Mono<List<OmOdFvrDtl>> findByOdNo(String odNo) {
+    public Mono<List<OmOdFvrDtl>> findAllByOdNo(String odNo) {
         return orderFavorDetailRepository.findByOdNo(odNo)
                 .collectList();
     }

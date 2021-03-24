@@ -24,7 +24,7 @@ public class OrderDetailDao {
                 .collectList();
     }
 
-    public Mono<List<OmOdDtl>> findOrderDetailByOdNo(String odNo) {
+    public Mono<List<OmOdDtl>> findAllDetailByOdNo(String odNo) {
         return orderDetailRepository.findByOdNo(odNo)
                 .collectList();
     }
