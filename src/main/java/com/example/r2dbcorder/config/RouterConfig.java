@@ -14,7 +14,10 @@ public class RouterConfig {
     @Bean
     RouterFunction<ServerResponse> routerFunction(OrderHandler orderHandler) {
         return RouterFunctions.route()
-                .GET("/find-by-odno/{odNo}", RequestPredicates.all(), orderHandler::findByOdNo)
+                .GET("/find/{odNo}", RequestPredicates.all(), orderHandler::findByOdNo)
+                .GET("/save-test-order/{memberNo}/{name}", RequestPredicates.all(), orderHandler::saveTestOrder)
+                .GET("/find-dto/{odNo}", RequestPredicates.all(), orderHandler::findDtoByOdNo)
+                .GET("/find-interface-dto/{odNo}", RequestPredicates.all(), orderHandler::findIDtoByOdNo)
                 .build();
     }
 }

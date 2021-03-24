@@ -1,8 +1,10 @@
 package com.example.r2dbcorder.service;
 
-import com.example.r2dbcorder.domain.OrderDetailManager;
-import com.example.r2dbcorder.domain.OrderFavorDetailManager;
-import com.example.r2dbcorder.domain.OrderManager;
+import com.example.r2dbcorder.dto.IOdDtlDto;
+import com.example.r2dbcorder.dto.OdDtlDto;
+import com.example.r2dbcorder.repository.manager.OrderDetailManager;
+import com.example.r2dbcorder.repository.manager.OrderFavorDetailManager;
+import com.example.r2dbcorder.repository.manager.OrderManager;
 import com.example.r2dbcorder.exceptions.OrderNotFoundException;
 import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
@@ -76,6 +78,14 @@ public class OrderService {
     private Mono<OmOd> findOrderFvrDetailFromOd(OmOd order) {
         return Mono.just(order)
                 .zipWith(orderFavorDetailManager.findByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
+    }
+
+    public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {
+        return orderDetailManager.findDtoByOdNo(odNo);
+    }
+
+    public Mono<List<IOdDtlDto>> findIDtoByOdNo(String odNo) {
+        return orderDetailManager.findIDtoByOdNo(odNo);
     }
 
 }

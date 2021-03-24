@@ -1,4 +1,4 @@
-package com.example.r2dbcorder.domain;
+package com.example.r2dbcorder.repository.manager;
 
 import com.example.r2dbcorder.repository.OrderFavorDetailRepository;
 import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;

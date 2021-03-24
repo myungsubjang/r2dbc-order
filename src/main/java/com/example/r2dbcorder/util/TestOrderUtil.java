@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TestOrders {
+public class TestOrderUtil {
 
     private static AtomicInteger orderSeq = new AtomicInteger();
     private static AtomicInteger favorSeq = new AtomicInteger();
@@ -37,10 +37,11 @@ public class TestOrders {
         return Integer.toString(favorSeq.incrementAndGet());
     }
 
-    public static OmOd createTestOrder(String memberNo, String nameWhoOrder) {
+    public static OmOd createTestOrder(String memberNo, String name) {
+
         OmOd newOrder = new OmOd();
         newOrder.setMbNo(memberNo);
-        newOrder.setOdrNm(nameWhoOrder);
+        newOrder.setOdrNm(name);
 
         List<OmOdDtl> testOrderDetails = createTestOrderDetails(randomNoBoundProductSize(), memberNo);
         newOrder.setOmOdDtlList(testOrderDetails);

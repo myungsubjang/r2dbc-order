@@ -2,7 +2,7 @@ package com.example.r2dbcorder.config.persistence;
 
 import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;
-import com.example.r2dbcorder.util.TestOrders;
+import com.example.r2dbcorder.util.TestOrderUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.r2dbc.mapping.event.BeforeConvertCallback;
@@ -22,7 +22,7 @@ public class CallbackConfig {
     }
 
     private OmOd setOrderNoAndGet(OmOd order) {
-        return order.withOdNo(TestOrders.generateOrderNumber());
+        return order.withOdNo(TestOrderUtil.generateOrderNumber());
     }
 
     @Bean
@@ -36,7 +36,7 @@ public class CallbackConfig {
     }
 
     private OmOdFvrDtl setFavorNoAndGetFavorDetail(OmOdFvrDtl favorDetail) {
-        return favorDetail.withOdFvrNo(TestOrders.generateOrderFavorNumber());
+        return favorDetail.withOdFvrNo(TestOrderUtil.generateOrderFavorNumber());
     }
 
 }

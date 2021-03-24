@@ -1,14 +1,14 @@
-package com.example.r2dbcorder.domain;
+package com.example.r2dbcorder.repository.manager;
 
+import com.example.r2dbcorder.dto.IOdDtlDto;
+import com.example.r2dbcorder.dto.OdDtlDto;
 import com.example.r2dbcorder.repository.OrderDetailRepository;
-import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -24,9 +24,18 @@ public class OrderDetailManager {
                 .collectList();
     }
 
-
     public Mono<List<OmOdDtl>> findOrderDetailByOdNo(String odNo) {
         return orderDetailRepository.findByOdNo(odNo)
+                .collectList();
+    }
+
+    public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {
+        return orderDetailRepository.findDtoByOdNo(odNo)
+                .collectList();
+    }
+
+    public Mono<List<IOdDtlDto>> findIDtoByOdNo(String odNo) {
+        return orderDetailRepository.findIDtoByOdNo(odNo)
                 .collectList();
     }
 }
