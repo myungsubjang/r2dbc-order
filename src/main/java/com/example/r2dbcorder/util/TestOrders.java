@@ -41,8 +41,10 @@ public class TestOrders {
         OmOd newOrder = new OmOd();
         newOrder.setMbNo(memberNo);
         newOrder.setOdrNm(nameWhoOrder);
+
         List<OmOdDtl> testOrderDetails = createTestOrderDetails(randomNoBoundProductSize(), memberNo);
         newOrder.setOmOdDtlList(testOrderDetails);
+
         List<OmOdFvrDtl> testOrderFavorDetails = createTestOrderFavorDetails(testOrderDetails);
         newOrder.setOmOdFvrDtlList(testOrderFavorDetails);
         return newOrder;
@@ -90,10 +92,13 @@ public class TestOrders {
             favorDetail.setOdFvrDvsCd("HAPN");
             favorDetail.setDcTnnoCd("1st");
             favorDetail.setAplyQty(ThreadLocalRandom.current().nextInt(1, orderDetail.getOdQty() + 1));
-            favorDetail.setFvrAmt((orderDetail.getSlPrc() / orderDetail.getOdQty()) * favorDetail.getAplyQty() / 10);
             favorDetail.setPrNo("1");
             favorDetail.setPrNm("임시프로모션");
             favorDetails.add(favorDetail);
+            int favorAmount =  (orderDetail.getSlPrc() / orderDetail.getOdQty()) * favorDetail.getAplyQty() / 10;
+            favorDetail.setFvrAmt(favorAmount);
+            //임시 혜택금액 세팅
+            orderDetail.setDcAmt(favorAmount);
         }
         return favorDetails;
     }

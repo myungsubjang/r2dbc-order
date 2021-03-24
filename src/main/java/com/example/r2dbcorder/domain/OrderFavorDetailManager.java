@@ -21,4 +21,9 @@ public class OrderFavorDetailManager {
                 .flatMap(orderFavorDetailRepository::save)
                 .collectList();
     }
+
+    public Mono<List<OmOdFvrDtl>> findByOdNo(String odNo) {
+        return orderFavorDetailRepository.findByOdNo(odNo)
+                .collectList();
+    }
 }

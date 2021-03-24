@@ -9,6 +9,7 @@ import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -16,12 +17,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrderService {
 
     private final OrderManager orderManager;
     private final OrderDetailManager orderDetailManager;
     private final OrderFavorDetailManager orderFavorDetailManager;
 
+    @Transactional
     public Mono<OmOd> saveOrder(OmOd order) {
         return Mono.just(order)
                 .flatMap(orderManager::saveOrder)
@@ -54,8 +57,9 @@ public class OrderService {
     public Mono<OmOd> findOrderByOdNo(String odNo) {
         return Mono.just(odNo)
                 .flatMap(orderManager::findByOdNo)
-                .flatMap(this::findOrderDetailWithOrder)
-                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo)); // exception 멈추고 리턴되는지?
+                .flatMap(this::findOrderDetailFromOd)
+                .flatMap(this::findOrderFvrDetailFromOd)
+                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo)); // exception발생하면 바로 리턴하네
     }
 
     private OmOd nullOmOd(String odNo) {
@@ -64,8 +68,14 @@ public class OrderService {
         return nullOrder;
     }
 
-    private Mono<OmOd> findOrderDetailWithOrder(OmOd order) {
+    private Mono<OmOd> findOrderDetailFromOd(OmOd order) {
         return Mono.just(order)
                 .zipWith(orderDetailManager.findOrderDetailByOdNo(order.getOdNo()), OmOd::withOmOdDtlList);
     }
+
+    private Mono<OmOd> findOrderFvrDetailFromOd(OmOd order) {
+        return Mono.just(order)
+                .zipWith(orderFavorDetailManager.findByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
+    }
+
 }
