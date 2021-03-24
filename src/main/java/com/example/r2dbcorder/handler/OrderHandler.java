@@ -44,4 +44,12 @@ public class OrderHandler {
         return orderService.findTypeByOdNo(odNo, type)
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
+
+    public Mono<ServerResponse> findOrderByDetailOverPrice(ServerRequest request) {
+        String odNo = request.pathVariable("odNo");
+        String priceStr = request.pathVariable("price");
+        int price = Integer.parseInt(priceStr);
+        return orderService.findOrderOverPrice(odNo, price)
+                .flatMap(ServerResponse.ok()::bodyValue);
+    }
 }

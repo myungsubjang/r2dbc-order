@@ -39,9 +39,15 @@ public class OrderDetailDao {
                 .collectList();
     }
 
-    public <T> Mono<? extends List<T>> findTypeByOdNo(String odNo, Class<T> type) {
+    public <T> Mono<? extends List<? extends T>> findTypeByOdNo(String odNo, Class<T> type) {
         // enummap으로 제공하는게 나을듯?
-        return orderDetailRepository.findTypeByOdNo(odNo, type).collectList();
+        return orderDetailRepository.findTypeByOdNo(odNo, type)
+                .collectList();
+    }
+
+    public Mono<List<OmOdDtl>> findDtlOverPrice(String odNo, int price) {
+        return orderDetailRepository.findByOdNoAndSlPrcGreaterThan(odNo, price)
+                .collectList();
     }
 
 

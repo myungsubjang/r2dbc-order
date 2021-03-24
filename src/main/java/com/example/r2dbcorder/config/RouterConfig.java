@@ -19,6 +19,7 @@ public class RouterConfig {
                 .GET("/find-dto/{odNo}", RequestPredicates.all(), orderHandler::findDtoByOdNo)
                 .GET("/find-interface-dto/{odNo}", RequestPredicates.all(), orderHandler::findIDtoByOdNo)
                 .GET("/find-type/{odNo}/{type}", RequestPredicates.all(), orderHandler::findTypeByOdNo)
+                .GET("/find-over-price/{odNo}/{price}", RequestPredicates.all(), orderHandler::findOrderByDetailOverPrice)
                 .build();
     }
 }

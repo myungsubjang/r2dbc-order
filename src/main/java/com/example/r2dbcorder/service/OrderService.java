@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +63,27 @@ public class OrderService {
                 .flatMap(this::findOrderDetailFromOd)
                 .flatMap(this::findOrderFvrDetailFromOd)
                 .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo)); // exception발생하면 바로 리턴하네
+//        return findOrderByOdNozz(odNo, this::findOrderDetailFromOd, this::findOrderFvrDetailFromOd);
+    }
+
+    private Mono<OmOd> findOrderByOdNoFunComposition(String odNo, Function<OmOd, Mono<OmOd>> detailFun, Function<OmOd, Mono<OmOd>> favorFun) {
+        return Mono.just(odNo)
+                .flatMap(orderDao::findByOdNo) // 이부분도 조건화할 수 있겠는데
+                .flatMap(detailFun)
+                .flatMap(favorFun)
+                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
+    }
+
+    //Builder를 사용해서 어디까지 가져올 것인지 정하고 넣기?
+    public Mono<OmOd> findOrderOverPrice(String odNo, int price) {
+        return findOrderByOdNoFunComposition(odNo,
+                omOd -> overPriceDetail(omOd, price),
+                this::findOrderFvrDetailFromOd);
+    }
+
+    private Mono<OmOd> overPriceDetail(OmOd order, int price) {
+        return Mono.just(order)
+                .zipWith(orderDetailDao.findDtlOverPrice(order.getOdNo(), price), OmOd::withOmOdDtlList);
     }
 
     private OmOd nullOmOd(String odNo) {
@@ -80,6 +102,11 @@ public class OrderService {
                 .zipWith(orderFavorDetailDao.findByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
     }
 
+//    private <T> Mono<OmOd> test(OmOd order, Mono<T> other, BiFunction<? super OmOd, ? super T, ? extends OmOd> combinator) {
+//        return Mono.just(order)
+//                .zipWith(other, combinator);
+//    }
+
     public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {
         return orderDetailDao.findDtoByOdNo(odNo);
     }
@@ -97,8 +124,8 @@ public class OrderService {
 
     //projection을 다이나믹하게 구성해보기
 //    public Mono<OmOd> findOrderByOdNoAndType(String odNo, String type) {
-//         // 프로젝션에 대한 함수를 다이나믹하게 결정.
-//
+         // 프로젝션에 대한 함수를 다이나믹하게 결정.
+
 //    }
 
 }

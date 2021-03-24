@@ -15,4 +15,6 @@ public interface OrderDetailRepository extends ReactiveCrudRepository<OmOdDtl, S
     Flux<IOdDtlDto> findIDtoByOdNo(String odNo);
 
     <T> Flux<T> findTypeByOdNo(String odNo, Class<T> type);
+
+    Flux<OmOdDtl> findByOdNoAndSlPrcGreaterThan(String odNo, int price);
 }
