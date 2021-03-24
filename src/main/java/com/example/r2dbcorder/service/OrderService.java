@@ -64,7 +64,7 @@ public class OrderService {
 //                .flatMap(this::findAllFvrDetailFromOd)
 //                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
 
-        return findOrderByOdNoFunCompositionzz(
+        return findOrderWithStrategy(
                 findJustOrderByOdNo(odNo),
                 order -> findAllDetailFromOd(order),
                 order -> findAllFvrDetailFromOd(order)
@@ -72,24 +72,16 @@ public class OrderService {
     }
 
     public Mono<OmOd> findOrderOverPrice(String odNo, int price) {
-        return findOrderByOdNoFunCompositionzz(
+        return findOrderWithStrategy(
                 findJustOrderByOdNo(odNo),
                 omOd -> overPriceDetail(omOd, price),
                 omOd -> findAllFvrDetailFromOd(omOd)
         );
     }
 
-    private Mono<OmOd> findOrderByOdNoFunComposition(String odNo, Function<OmOd, Mono<OmOd>> detailFun, Function<OmOd, Mono<OmOd>> favorFun) {
-        return Mono.just(odNo)
-                .flatMap(orderDao::findByOdNo) // 이부분도 조건화할 수 있겠는데
-                .flatMap(detailFun)
-                .flatMap(favorFun)
-                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
-    }
-
-    private Mono<OmOd> findOrderByOdNoFunCompositionzz(Mono<OmOd> order, Function<OmOd, Mono<OmOd>> detailFun, Function<OmOd, Mono<OmOd>> favorFun) {
-        return order.flatMap(detailFun)
-                .flatMap(favorFun);
+    private Mono<OmOd> findOrderWithStrategy(Mono<OmOd> order, Function<OmOd, Mono<OmOd>> detailStrategy, Function<OmOd, Mono<OmOd>> favorStrategy) {
+        return order.flatMap(detailStrategy)
+                .flatMap(favorStrategy);
     }
 
     private Mono<OmOd> findJustOrderByOdNo(String odNo) {
@@ -117,6 +109,12 @@ public class OrderService {
     private Mono<OmOd> findAllFvrDetailFromOd(OmOd order) {
         return Mono.just(order)
                 .zipWith(orderFavorDetailDao.findAllByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
+    }
+
+    public Mono<List<OmOd>> findAllOrder() {
+        return orderDao.findAllOrder()
+                .flatMap(order -> findOrderByOdNo(order.getOdNo()))
+                .collectList();
     }
 
     public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {

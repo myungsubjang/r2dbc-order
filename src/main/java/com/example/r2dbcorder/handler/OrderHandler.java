@@ -52,4 +52,9 @@ public class OrderHandler {
         return orderService.findOrderOverPrice(odNo, price)
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
+
+    public Mono<ServerResponse> findAllOrder(ServerRequest request) {
+        return orderService.findAllOrder()
+                .flatMap(ServerResponse.ok()::bodyValue);
+    }
 }

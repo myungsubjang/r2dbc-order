@@ -15,6 +15,7 @@ public class RouterConfig {
     RouterFunction<ServerResponse> routerFunction(OrderHandler orderHandler) {
         return RouterFunctions.route()
                 .GET("/find/{odNo}", RequestPredicates.all(), orderHandler::findByOdNo)
+                .GET("/find-all", RequestPredicates.all(), orderHandler::findAllOrder)
                 .GET("/save-test-order/{memberNo}/{name}", RequestPredicates.all(), orderHandler::saveTestOrder)
                 .GET("/find-dto/{odNo}", RequestPredicates.all(), orderHandler::findDtoByOdNo)
                 .GET("/find-interface-dto/{odNo}", RequestPredicates.all(), orderHandler::findIDtoByOdNo)
