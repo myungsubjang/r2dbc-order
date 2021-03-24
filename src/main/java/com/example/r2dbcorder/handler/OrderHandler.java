@@ -49,12 +49,19 @@ public class OrderHandler {
         String odNo = request.pathVariable("odNo");
         String priceStr = request.pathVariable("price");
         int price = Integer.parseInt(priceStr);
-        return orderService.findOrderOverPrice(odNo, price)
+        return orderService.findOrderOnlyDetailPriceOver(odNo, price)
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
 
     public Mono<ServerResponse> findAllOrder(ServerRequest request) {
         return orderService.findAllOrder()
+                .flatMap(ServerResponse.ok()::bodyValue);
+    }
+
+    public Mono<ServerResponse> findOrdersOverPrice(ServerRequest request) {
+        String priceStr = request.pathVariable("price");
+        int price = Integer.parseInt(priceStr);
+        return orderService.findOrdersOverPrice(price)
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
 }
