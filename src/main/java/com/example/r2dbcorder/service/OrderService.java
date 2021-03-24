@@ -2,9 +2,9 @@ package com.example.r2dbcorder.service;
 
 import com.example.r2dbcorder.dto.IOdDtlDto;
 import com.example.r2dbcorder.dto.OdDtlDto;
-import com.example.r2dbcorder.repository.manager.OrderDetailManager;
-import com.example.r2dbcorder.repository.manager.OrderFavorDetailManager;
-import com.example.r2dbcorder.repository.manager.OrderManager;
+import com.example.r2dbcorder.repository.dao.OrderDetailDao;
+import com.example.r2dbcorder.repository.dao.OrderFavorDetailDao;
+import com.example.r2dbcorder.repository.dao.OrderDao;
 import com.example.r2dbcorder.exceptions.OrderNotFoundException;
 import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
@@ -22,14 +22,14 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class OrderService {
 
-    private final OrderManager orderManager;
-    private final OrderDetailManager orderDetailManager;
-    private final OrderFavorDetailManager orderFavorDetailManager;
+    private final OrderDao orderDao;
+    private final OrderDetailDao orderDetailDao;
+    private final OrderFavorDetailDao orderFavorDetailDao;
 
     @Transactional
     public Mono<OmOd> saveOrder(OmOd order) {
         return Mono.just(order)
-                .flatMap(orderManager::saveOrder)
+                .flatMap(orderDao::saveOrder)
                 .flatMap(this::saveOrderDetailFromOrder)
                 .flatMap(this::saveOrderFavorDetailFromOrder);
     }
@@ -41,7 +41,7 @@ public class OrderService {
             orderDetail.setOdNo(orderNo);
         }
         return Mono.just(copyList)
-                .flatMap(orderDetailManager::save)
+                .flatMap(orderDetailDao::save)
                 .zipWith(Mono.just(order), (omOdDtls, omOd) -> omOd.withOmOdDtlList(omOdDtls));
     }
 
@@ -52,13 +52,13 @@ public class OrderService {
             favorDetail.setOdNo(orderNo);
         }
         return Mono.just(copyList)
-                .flatMap(orderFavorDetailManager::save)
+                .flatMap(orderFavorDetailDao::save)
                 .zipWith(Mono.just(order), (omOdFvrDtls, omOd) -> omOd.withOmOdFvrDtlList(omOdFvrDtls));
     }
 
     public Mono<OmOd> findOrderByOdNo(String odNo) {
         return Mono.just(odNo)
-                .flatMap(orderManager::findByOdNo)
+                .flatMap(orderDao::findByOdNo)
                 .flatMap(this::findOrderDetailFromOd)
                 .flatMap(this::findOrderFvrDetailFromOd)
                 .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo)); // exception발생하면 바로 리턴하네
@@ -72,20 +72,20 @@ public class OrderService {
 
     private Mono<OmOd> findOrderDetailFromOd(OmOd order) {
         return Mono.just(order)
-                .zipWith(orderDetailManager.findOrderDetailByOdNo(order.getOdNo()), OmOd::withOmOdDtlList);
+                .zipWith(orderDetailDao.findOrderDetailByOdNo(order.getOdNo()), OmOd::withOmOdDtlList);
     }
 
     private Mono<OmOd> findOrderFvrDetailFromOd(OmOd order) {
         return Mono.just(order)
-                .zipWith(orderFavorDetailManager.findByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
+                .zipWith(orderFavorDetailDao.findByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
     }
 
     public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {
-        return orderDetailManager.findDtoByOdNo(odNo);
+        return orderDetailDao.findDtoByOdNo(odNo);
     }
 
     public Mono<List<IOdDtlDto>> findIDtoByOdNo(String odNo) {
-        return orderDetailManager.findIDtoByOdNo(odNo);
+        return orderDetailDao.findIDtoByOdNo(odNo);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.example.r2dbcorder.repository.manager;
+package com.example.r2dbcorder.repository.dao;
 
 import com.example.r2dbcorder.dto.IOdDtlDto;
 import com.example.r2dbcorder.dto.OdDtlDto;
@@ -13,7 +13,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class OrderDetailManager {
+public class OrderDetailDao {
 
     private final OrderDetailRepository orderDetailRepository;
 

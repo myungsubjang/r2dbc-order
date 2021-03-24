@@ -1,4 +1,4 @@
-package com.example.r2dbcorder.repository.manager;
+package com.example.r2dbcorder.repository.dao;
 
 import com.example.r2dbcorder.repository.OrderFavorDetailRepository;
 import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;
@@ -11,7 +11,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class OrderFavorDetailManager {
+public class OrderFavorDetailDao {
 
     private final OrderFavorDetailRepository orderFavorDetailRepository;
 

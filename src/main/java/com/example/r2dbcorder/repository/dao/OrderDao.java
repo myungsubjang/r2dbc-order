@@ -1,4 +1,4 @@
-package com.example.r2dbcorder.repository.manager;
+package com.example.r2dbcorder.repository.dao;
 
 import com.example.r2dbcorder.exceptions.OrderNotFoundException;
 import com.example.r2dbcorder.repository.OrderRepository;
@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
-public class OrderManager {
+public class OrderDao {
 
     private final OrderRepository orderRepository;
 
