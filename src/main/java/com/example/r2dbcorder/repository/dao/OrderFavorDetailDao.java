@@ -26,4 +26,10 @@ public class OrderFavorDetailDao {
         return orderFavorDetailRepository.findByOdNo(odNo)
                 .collectList();
     }
+
+    public Flux<OmOdFvrDtl> findFvrByOdNoOdSeqProcSeq(String odNo, int odSeq, int procSeq) {
+        return orderFavorDetailRepository.findByOdNoAndOdSeqAndProcSeq(odNo, odSeq, procSeq);
+//                .collectList();
+    }
+
 }

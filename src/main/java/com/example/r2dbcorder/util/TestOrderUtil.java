@@ -3,6 +3,7 @@ package com.example.r2dbcorder.util;
 import com.example.r2dbcorder.repository.entity.OmOd;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;
+import org.springframework.beans.BeanUtils;
 import org.springframework.util.Assert;
 
 import java.time.LocalDate;
@@ -57,25 +58,38 @@ public class TestOrderUtil {
 
     private static List<OmOdDtl> createTestOrderDetails(int orderDtlSize, String memberNo) {
         Assert.state(orderDtlSize <= TestProduct.SIZE + 1, "Order detail size must less than test products size!");
-        List<OmOdDtl> orderDetails = new ArrayList<>();
+        List<OmOdDtl> orderDetailList = new ArrayList<>();
         List<TestProduct> testProducts = randomOrderingProducts();
         for (int i = 0; i < orderDtlSize; i++) {
-            OmOdDtl orderDetail = new OmOdDtl();
-            orderDetail.setOdSeq(i + 1);
-            orderDetail.setProcSeq(1);
-            orderDetail.setOdTypCd("10");
-            orderDetail.setOdPrgsStepCd("01");
-            orderDetail.setMbNo(memberNo);
-            int randomOrderQuantity = ThreadLocalRandom.current().nextInt(1, 10);
-            orderDetail.setOdQty(randomOrderQuantity);
             TestProduct product = testProducts.get(i);
-            orderDetail.setSlPrc(randomOrderQuantity * product.getPrice());
-            orderDetail.setDcAmt(0);
-            orderDetail.setPdNo(product.getPdNo());
-            orderDetail.setPdNm(product.getPdNm());
-            orderDetails.add(orderDetail);
+            OmOdDtl orderDetail = createTestOdDtl(memberNo, product);
+            orderDetail.setOdSeq(i + 1);
+            orderDetailList.add(orderDetail);
+            if (orderDtlSize == 3 && i + 1 == 3) {
+                OmOdDtl cancelDtl = new OmOdDtl();
+                BeanUtils.copyProperties(orderDetail, cancelDtl);
+                cancelDtl.setProcSeq(2);
+                cancelDtl.setOdTypCd("20");
+                cancelDtl.setCnclQty(cancelDtl.getOdQty());
+                orderDetailList.add(cancelDtl);
+            }
         }
-        return orderDetails;
+        return orderDetailList;
+    }
+
+    private static OmOdDtl createTestOdDtl(String memberNo, TestProduct product) {
+        OmOdDtl orderDetail = new OmOdDtl();
+        orderDetail.setProcSeq(1);
+        orderDetail.setOdTypCd("10");
+        orderDetail.setOdPrgsStepCd("01");
+        orderDetail.setMbNo(memberNo);
+        int randomOrderQuantity = ThreadLocalRandom.current().nextInt(1, 10);
+        orderDetail.setOdQty(randomOrderQuantity);
+        orderDetail.setSlPrc(randomOrderQuantity * product.getPrice());
+        orderDetail.setDcAmt(0);
+        orderDetail.setPdNo(product.getPdNo());
+        orderDetail.setPdNm(product.getPdNm());
+        return orderDetail;
     }
 
     private static List<TestProduct> randomOrderingProducts() {

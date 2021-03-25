@@ -7,4 +7,6 @@ import reactor.core.publisher.Flux;
 public interface OrderFavorDetailRepository extends ReactiveCrudRepository<OmOdFvrDtl, String> {
 
     Flux<OmOdFvrDtl> findByOdNo(String odNo);
+
+    Flux<OmOdFvrDtl> findByOdNoAndOdSeqAndProcSeq(String odNo, int odSeq, int procSeq);
 }

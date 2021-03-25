@@ -50,5 +50,9 @@ public class OrderDetailDao {
                 .collectList();
     }
 
+    public Flux<OmOdDtl> findAllOdTypDtl(String odTypCd) {
+        return orderDetailRepository.findByOdTypCd(odTypCd);
+    }
+
 
 }

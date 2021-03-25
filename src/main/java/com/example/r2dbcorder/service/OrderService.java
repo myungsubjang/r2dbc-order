@@ -41,6 +41,7 @@ public class OrderService {
         String orderNo = order.getOdNo();
         for (OmOdDtl orderDetail : copyList) {
             orderDetail.setOdNo(orderNo);
+            orderDetail.setOdCmptDttm(order.getOdCmptDttm());
         }
         return Mono.just(copyList)
                 .flatMap(orderDetailDao::save)
@@ -58,20 +59,39 @@ public class OrderService {
                 .zipWith(Mono.just(order), (omOdFvrDtls, omOd) -> omOd.withOmOdFvrDtlList(omOdFvrDtls));
     }
 
+//    public Mono<OmOd> findOrderByOdN2o(String odNo) {
+//        return Mono.just(odNo)
+//                .flatMap(orderDao::findByOdNo)
+//                .flatMap(this::allDetailByOdNo)
+//                .flatMap(this::allFavorByOdNo)
+//                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
+//    }
+
     public Mono<OmOd> findOrderByOdNo(String odNo) {
-        return findDtlAndFvrWithStrategy(
+        return makeOrderWithStrategies(
                 findJustOrderByOdNo(odNo),
-                order -> allDetail(order),
-                order -> allFavor(order)
+                order -> allDetailByOdNo(order),
+                order -> allFavorByOdNo(order)
         );
     }
 
     public Mono<OmOd> findOrderOnlyDetailPriceOver(String odNo, int price) {
-        return findDtlAndFvrWithStrategy(
+        return makeOrderWithStrategies(
                 findJustOrderByOdNo(odNo),
                 omOd -> overPriceDetail(omOd, price),
-                omOd -> allFavor(omOd)
+                omOd -> favorsDependsOnDetails(omOd)
         );
+    }
+
+    public Mono<List<OmOd>> findOrdersOverPrice(int price) {
+        return orderDao.findAllOrder()
+                .flatMap(od -> makeOrderWithStrategies(
+                        findJustOrderByOdNo(od.getOdNo()),
+                        order -> allDetailByOdNo(order),
+                        order -> allFavorByOdNo(order)
+                ))
+                .filter(order -> isOrderOverPrice(order, price))
+                .collectList();
     }
 
     private Mono<OmOd> findJustOrderByOdNo(String odNo) {
@@ -86,8 +106,9 @@ public class OrderService {
         return nullOrder;
     }
 
-    private Mono<OmOd> findDtlAndFvrWithStrategy(Mono<OmOd> order, Function<OmOd, Mono<OmOd>> detailStrategy, Function<OmOd, Mono<OmOd>> favorStrategy) {
-        return order.flatMap(detailStrategy)
+    private Mono<OmOd> makeOrderWithStrategies(Mono<OmOd> targetOd, Function<OmOd, Mono<OmOd>> detailStrategy, Function<OmOd, Mono<OmOd>> favorStrategy) {
+        return targetOd
+                .flatMap(detailStrategy)
                 .flatMap(favorStrategy);
     }
 
@@ -96,28 +117,30 @@ public class OrderService {
                 .zipWith(orderDetailDao.findDtlOverPrice(order.getOdNo(), price), OmOd::withOmOdDtlList);
     }
 
-    private Mono<OmOd> allDetail(OmOd order) {
+    private Mono<OmOd> allDetailByOdNo(OmOd order) {
         return Mono.just(order)
                 .zipWith(orderDetailDao.findAllDetailByOdNo(order.getOdNo()), OmOd::withOmOdDtlList);
     }
 
-    private Mono<OmOd> allFavor(OmOd order) {
+    private Mono<OmOd> allFavorByOdNo(OmOd order) {
         return Mono.just(order)
                 .zipWith(orderFavorDetailDao.findAllByOdNo(order.getOdNo()), OmOd::withOmOdFvrDtlList);
     }
 
+    private Mono<OmOd> favorsDependsOnDetails(OmOd order) {
+        return Flux.fromIterable(order.getOmOdDtlList())
+                .flatMap(odDtl -> orderFavorDetailDao.findFvrByOdNoOdSeqProcSeq(odDtl.getOdNo(), odDtl.getOdSeq(), odDtl.getProcSeq()))
+                .collectList()
+                .zipWith(Mono.just(order), (odFvrDtls, omOd) -> omOd.withOmOdFvrDtlList(odFvrDtls));
+    }
+
     public Mono<List<OmOd>> findAllOrder() {
         return orderDao.findAllOrder()
-                .flatMap(order -> findOrderByOdNo(order.getOdNo()))
-                .collectList();
-    }
-    //TODO 살아있는 주문만 가져오기
-    //TODO 정책을 엮기
-
-    public Mono<List<OmOd>> findOrdersOverPrice(int price) {
-        return orderDao.findAllOrder()
-                .flatMap(order -> findOrderByOdNo(order.getOdNo()))
-                .filter(order -> isOrderOverPrice(order, price))
+                .flatMap(order -> makeOrderWithStrategies(
+                        findJustOrderByOdNo(order.getOdNo()),
+                        od -> allDetailByOdNo(od),
+                        od -> allFavorByOdNo(od)
+                ))
                 .collectList();
     }
 
@@ -129,6 +152,22 @@ public class OrderService {
         return priceSum > price;
     }
 
+    //취소주문
+    public Mono<List<OmOd>> findOrderListContainCancelDtl() {
+//        return orderDetailDao.findAllOdTypDtl("20")
+//            .groupBy(OmOdDtl::getOdNo)
+//            .flatMap(groupedFlux -> findJustOrderByOdNo(groupedFlux.key())
+//                    .zipWith(groupedFlux.collectList(), OmOd::withOmOdDtlList)
+//            ).flatMap(order -> favorsDependsOnDetails(order))
+//            .collectList();
+        return orderDetailDao.findAllOdTypDtl("20")
+                .groupBy(OmOdDtl::getOdNo)
+                .flatMap(groupedFlux -> makeOrderWithStrategies(
+                        findJustOrderByOdNo(groupedFlux.key()),
+                        order -> Mono.just(order).zipWith(groupedFlux.collectList(), OmOd::withOmOdDtlList),
+                        order -> favorsDependsOnDetails(order)
+                )).collectList();
+    }
 
     public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {
         return orderDetailDao.findDtoByOdNo(odNo);
@@ -145,12 +184,5 @@ public class OrderService {
         return orderDetailDao.findTypeByOdNo(odNo, IOdDtlDto.class);
     }
 
-//    public Mono<OmOd> findOrderByOdNo(String odNo) {
-//        //motive
-//        return Mono.just(odNo)
-//                .flatMap(orderDao::findByOdNo)
-//                .flatMap(this::findAllDetailFromOd)
-//                .flatMap(this::findAllFvrDetailFromOd)
-//                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
-//    }
+
 }

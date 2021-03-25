@@ -22,6 +22,7 @@ public class RouterConfig {
                 .GET("/find-type/{odNo}/{type}", RequestPredicates.all(), orderHandler::findTypeByOdNo)
                 .GET("/find-over-price/{odNo}/{price}", RequestPredicates.all(), orderHandler::findOrderByDetailOverPrice)
                 .GET("/find-over-price/{price}", RequestPredicates.all(), orderHandler::findOrdersOverPrice)
+                .GET("/find-orderlist-contain-cancel", RequestPredicates.all(), orderHandler::findOrdersContainCancelDtl)
                 .build();
     }
 }

@@ -64,4 +64,9 @@ public class OrderHandler {
         return orderService.findOrdersOverPrice(price)
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
+
+    public Mono<ServerResponse> findOrdersContainCancelDtl(ServerRequest request) {
+        return orderService.findOrderListContainCancelDtl()
+                .flatMap(ServerResponse.ok()::bodyValue);
+    }
 }
