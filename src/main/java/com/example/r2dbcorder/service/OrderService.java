@@ -67,7 +67,7 @@ public class OrderService {
 //                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
 //    }
 
-    public Mono<OmOd> findOrderByOdNo(String odNo) {
+    public Mono<OmOd> findFullOrderByOdNo(String odNo) {
         return makeOrderWithStrategies(
                 findJustOrderByOdNo(odNo),
                 order -> allDetailByOdNo(order),
@@ -137,7 +137,7 @@ public class OrderService {
     public Mono<List<OmOd>> findAllOrder() {
         return orderDao.findAllOrder()
                 .flatMap(order -> makeOrderWithStrategies(
-                        findJustOrderByOdNo(order.getOdNo()),
+                        Mono.just(order),
                         od -> allDetailByOdNo(od),
                         od -> allFavorByOdNo(od)
                 ))
@@ -152,7 +152,7 @@ public class OrderService {
         return priceSum > price;
     }
 
-    //취소주문
+    //취소주문상세가 있는 주문들만 조회 (주문 + 취소주문상세 + 취소주문상세혜택)
     public Mono<List<OmOd>> findOrderListContainCancelDtl() {
 //        return orderDetailDao.findAllOdTypDtl("20")
 //            .groupBy(OmOdDtl::getOdNo)
@@ -167,6 +167,14 @@ public class OrderService {
                         order -> Mono.just(order).zipWith(groupedFlux.collectList(), OmOd::withOmOdDtlList),
                         order -> favorsDependsOnDetails(order)
                 )).collectList();
+    }
+
+    //취소주문상세가 있는 주문들의 전체 상세까지 조회()
+    public Mono<List<OmOd>> findOrderListContainCancelFullDtl() {
+        return orderDetailDao.findAllOdTypDtl("20")
+                .groupBy(OmOdDtl::getOdNo)
+                .flatMap(groupedFlux -> findFullOrderByOdNo(groupedFlux.key())
+                ).collectList();
     }
 
     public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {

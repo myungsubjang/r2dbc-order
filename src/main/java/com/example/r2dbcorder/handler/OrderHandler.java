@@ -22,7 +22,7 @@ public class OrderHandler {
     }
 
     public Mono<ServerResponse> findByOdNo(ServerRequest request) {
-        return orderService.findOrderByOdNo(request.pathVariable("odNo"))
+        return orderService.findFullOrderByOdNo(request.pathVariable("odNo"))
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
 
@@ -67,6 +67,11 @@ public class OrderHandler {
 
     public Mono<ServerResponse> findOrdersContainCancelDtl(ServerRequest request) {
         return orderService.findOrderListContainCancelDtl()
+                .flatMap(ServerResponse.ok()::bodyValue);
+    }
+
+    public Mono<ServerResponse> findOrdersContainCancelAllDtl(ServerRequest request) {
+        return orderService.findOrderListContainCancelFullDtl()
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
 }
