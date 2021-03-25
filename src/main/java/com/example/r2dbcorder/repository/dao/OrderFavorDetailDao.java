@@ -15,7 +15,7 @@ public class OrderFavorDetailDao {
 
     private final OrderFavorDetailRepository orderFavorDetailRepository;
 
-    public Mono<List<OmOdFvrDtl>> save(List<OmOdFvrDtl> favorDetails) {
+    public Mono<List<OmOdFvrDtl>> saveList(List<OmOdFvrDtl> favorDetails) {
         //validation
         return Flux.fromIterable(favorDetails)
                 .flatMap(orderFavorDetailRepository::save)
@@ -23,11 +23,13 @@ public class OrderFavorDetailDao {
     }
 
     public Mono<List<OmOdFvrDtl>> findAllByOdNo(String odNo) {
+        //validation
         return orderFavorDetailRepository.findByOdNo(odNo)
                 .collectList();
     }
 
     public Flux<OmOdFvrDtl> findFvrByOdNoOdSeqProcSeq(String odNo, int odSeq, int procSeq) {
+        //validation
         return orderFavorDetailRepository.findByOdNoAndOdSeqAndProcSeq(odNo, odSeq, procSeq);
 //                .collectList();
     }

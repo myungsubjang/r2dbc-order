@@ -17,7 +17,7 @@ public class OrderDetailDao {
 
     private final OrderDetailRepository orderDetailRepository;
 
-    public Mono<List<OmOdDtl>> save(List<OmOdDtl> orderDetails) {
+    public Mono<List<OmOdDtl>> saveList(List<OmOdDtl> orderDetails) {
         //validation
         return Flux.fromIterable(orderDetails)
                 .flatMap(orderDetailRepository::save)
@@ -40,7 +40,6 @@ public class OrderDetailDao {
     }
 
     public <T> Mono<? extends List<? extends T>> findTypeByOdNo(String odNo, Class<T> type) {
-        // enummap으로 제공하는게 나을듯?
         return orderDetailRepository.findTypeByOdNo(odNo, type)
                 .collectList();
     }

@@ -1,5 +1,6 @@
 package com.example.r2dbcorder.service;
 
+import com.example.r2dbcorder.dto.DtoSample;
 import com.example.r2dbcorder.dto.IOdDtlDto;
 import com.example.r2dbcorder.dto.OdDtlDto;
 import com.example.r2dbcorder.repository.dao.OrderDetailDao;
@@ -44,7 +45,7 @@ public class OrderService {
             orderDetail.setOdCmptDttm(order.getOdCmptDttm());
         }
         return Mono.just(copyList)
-                .flatMap(orderDetailDao::save)
+                .flatMap(orderDetailDao::saveList)
                 .zipWith(Mono.just(order), (omOdDtls, omOd) -> omOd.withOmOdDtlList(omOdDtls));
     }
 
@@ -55,7 +56,7 @@ public class OrderService {
             favorDetail.setOdNo(orderNo);
         }
         return Mono.just(copyList)
-                .flatMap(orderFavorDetailDao::save)
+                .flatMap(orderFavorDetailDao::saveList)
                 .zipWith(Mono.just(order), (omOdFvrDtls, omOd) -> omOd.withOmOdFvrDtlList(omOdFvrDtls));
     }
 
@@ -66,6 +67,12 @@ public class OrderService {
 //                .flatMap(this::allFavorByOdNo)
 //                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
 //    }
+
+    private Mono<OmOd> makeOrderWithStrategies(Mono<OmOd> targetOd, Function<OmOd, Mono<OmOd>> detailStrategy, Function<OmOd, Mono<OmOd>> favorStrategy) {
+        return targetOd
+                .flatMap(detailStrategy)
+                .flatMap(favorStrategy);
+    }
 
     public Mono<OmOd> findFullOrderByOdNo(String odNo) {
         return makeOrderWithStrategies(
@@ -85,11 +92,7 @@ public class OrderService {
 
     public Mono<List<OmOd>> findOrdersOverPrice(int price) {
         return orderDao.findAllOrder()
-                .flatMap(od -> makeOrderWithStrategies(
-                        findJustOrderByOdNo(od.getOdNo()),
-                        order -> allDetailByOdNo(order),
-                        order -> allFavorByOdNo(order)
-                ))
+                .flatMap(od -> findFullOrderByOdNo(od.getOdNo()))
                 .filter(order -> isOrderOverPrice(order, price))
                 .collectList();
     }
@@ -104,12 +107,6 @@ public class OrderService {
         OmOd nullOrder = new OmOd();
         nullOrder.setOdNo(odNo + " dosen't exists");
         return nullOrder;
-    }
-
-    private Mono<OmOd> makeOrderWithStrategies(Mono<OmOd> targetOd, Function<OmOd, Mono<OmOd>> detailStrategy, Function<OmOd, Mono<OmOd>> favorStrategy) {
-        return targetOd
-                .flatMap(detailStrategy)
-                .flatMap(favorStrategy);
     }
 
     private Mono<OmOd> overPriceDetail(OmOd order, int price) {
@@ -169,12 +166,12 @@ public class OrderService {
                 )).collectList();
     }
 
-    //취소주문상세가 있는 주문들의 전체 상세까지 조회()
+    //취소주문상세가 있는 주문들의 전체 상세까지 조회
     public Mono<List<OmOd>> findOrderListContainCancelFullDtl() {
         return orderDetailDao.findAllOdTypDtl("20")
                 .groupBy(OmOdDtl::getOdNo)
-                .flatMap(groupedFlux -> findFullOrderByOdNo(groupedFlux.key())
-                ).collectList();
+                .flatMap(groupedFlux -> findFullOrderByOdNo(groupedFlux.key()))
+                .collectList();
     }
 
     public Mono<List<OdDtlDto>> findDtoByOdNo(String odNo) {
@@ -188,6 +185,8 @@ public class OrderService {
     public Mono<? extends List<?>> findTypeByOdNo(String odNo, String type) {
         if (type.equals("dto")) {
             return orderDetailDao.findTypeByOdNo(odNo, OdDtlDto.class);
+        } else if (type.equals("sample")) {
+            return orderDetailDao.findTypeByOdNo(odNo, DtoSample.class); // not working.
         }
         return orderDetailDao.findTypeByOdNo(odNo, IOdDtlDto.class);
     }

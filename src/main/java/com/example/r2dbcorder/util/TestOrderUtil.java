@@ -65,6 +65,7 @@ public class TestOrderUtil {
             OmOdDtl orderDetail = createTestOdDtl(memberNo, product);
             orderDetail.setOdSeq(i + 1);
             orderDetailList.add(orderDetail);
+            //임시 취소데이터 생성
             if (orderDtlSize == 3 && i + 1 == 3) {
                 OmOdDtl cancelDtl = new OmOdDtl();
                 BeanUtils.copyProperties(orderDetail, cancelDtl);
