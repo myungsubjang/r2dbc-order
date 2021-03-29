@@ -70,6 +70,7 @@ public class TestOrderUtil {
                 OmOdDtl cancelDtl = new OmOdDtl();
                 BeanUtils.copyProperties(orderDetail, cancelDtl);
                 cancelDtl.setProcSeq(2);
+                cancelDtl.setOrglProcSeq(1);
                 cancelDtl.setOdTypCd("20");
                 cancelDtl.setCnclQty(cancelDtl.getOdQty());
                 orderDetailList.add(cancelDtl);

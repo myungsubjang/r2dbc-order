@@ -26,6 +26,7 @@ public class OmOdDtl implements Serializable, Persistable<String> {
     private String odNo;
     private int odSeq;
     private int procSeq;
+    private int orglProcSeq;
     private String clmNo;
     private String odTypCd;
     private String odPrgsStepCd;

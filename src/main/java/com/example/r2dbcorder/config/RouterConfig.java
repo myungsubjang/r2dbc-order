@@ -1,5 +1,6 @@
 package com.example.r2dbcorder.config;
 
+import com.example.r2dbcorder.handler.ClaimHandler;
 import com.example.r2dbcorder.handler.OrderHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class RouterConfig {
 
     @Bean
-    RouterFunction<ServerResponse> routerFunction(OrderHandler orderHandler) {
+    RouterFunction<ServerResponse> orderRouter(OrderHandler orderHandler) {
         return RouterFunctions.route()
                 .GET("/save-test-order/{memberNo}/{name}", RequestPredicates.all(), orderHandler::saveTestOrder)
                 .GET("/find/{odNo}", RequestPredicates.all(), orderHandler::findByOdNo)
@@ -24,6 +25,13 @@ public class RouterConfig {
                 .GET("/find-over-price/{price}", RequestPredicates.all(), orderHandler::findOrdersOverPrice)
                 .GET("/find-orderlist-contain-cancel", RequestPredicates.all(), orderHandler::findOrdersContainCancelDtl)
                 .GET("/find-orderlist-contain-cancel/all", RequestPredicates.all(), orderHandler::findOrdersContainCancelAllDtl)
+                .build();
+    }
+
+    @Bean
+    RouterFunction<ServerResponse> claimRouter(ClaimHandler claimHandler) {
+        return RouterFunctions.route()
+                .POST("/claim/cancel", RequestPredicates.all(), claimHandler::cancelOrder)
                 .build();
     }
 }

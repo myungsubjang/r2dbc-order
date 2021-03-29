@@ -14,6 +14,7 @@ create table om_od_dtl
     od_no           VARCHAR(16) not null, -- 주문번호
     od_seq          integer     not null, --주문순번
     proc_seq        integer     not null, -- 처리순번
+    orgl_proc_seq   integer    ,          -- 원처리순번
     clm_no          VARCHAR(16),          -- 클레임번호
     od_typ_cd       VARCHAR(16),          -- 주문유형코드 10 주문 20 취소 30 교환 40 반품
     od_prgs_step_cd VARCHAR(16),          -- 주문진행상태코드 01 주문완료 02 출고지시 03 상품준비 04 발송완료 04 배송완료 20 취소완료
