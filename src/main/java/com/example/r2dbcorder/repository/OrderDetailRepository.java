@@ -5,8 +5,9 @@ import com.example.r2dbcorder.dto.OdDtlDto;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-public interface OrderDetailRepository extends ReactiveCrudRepository<OmOdDtl, String> {
+public interface OrderDetailRepository extends ReactiveCrudRepository<OmOdDtl, String>, OrderDetailCustomRepository {
 
     Flux<OmOdDtl> findByOdNo(String odNo);
 
@@ -19,4 +20,6 @@ public interface OrderDetailRepository extends ReactiveCrudRepository<OmOdDtl, S
     Flux<OmOdDtl> findByOdNoAndSlPrcGreaterThan(String odNo, int price);
 
     Flux<OmOdDtl> findByOdTypCd(String odTypCd);
+
+    Mono<OmOdDtl> findByOdNoAndOdSeqAndProcSeq(String odNo, int odSeq, int procSeq);
 }

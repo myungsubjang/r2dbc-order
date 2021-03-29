@@ -24,6 +24,10 @@ public class OrderDetailDao {
                 .collectList();
     }
 
+    public Mono<OmOdDtl> save(OmOdDtl orderDetail) {
+        return orderDetailRepository.save(orderDetail);
+    }
+
     public Mono<List<OmOdDtl>> findAllDetailByOdNo(String odNo) {
         return orderDetailRepository.findByOdNo(odNo)
                 .collectList();
@@ -53,5 +57,10 @@ public class OrderDetailDao {
         return orderDetailRepository.findByOdTypCd(odTypCd);
     }
 
+    public Mono<OmOdDtl> update(OmOdDtl orderDetail) {
+        return orderDetailRepository.update(orderDetail)
+                .log()
+                .flatMap(i -> orderDetailRepository.findByOdNoAndOdSeqAndProcSeq(orderDetail.getOdNo(), orderDetail.getOdSeq(), orderDetail.getProcSeq()));
+    }
 
 }

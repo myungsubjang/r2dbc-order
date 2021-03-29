@@ -5,6 +5,7 @@ import com.example.r2dbcorder.repository.OrderRepository;
 import com.example.r2dbcorder.repository.entity.OmOd;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -18,7 +19,9 @@ public class OrderDao {
 
     public Mono<OmOd> saveOrder(OmOd order) {
         // validation
-        order.setOdCmptDttm(LocalDateTime.now());
+        if (!StringUtils.hasLength(order.getOdNo())) {
+            order.setOdCmptDttm(LocalDateTime.now());
+        }
         return orderRepository.save(order);
     }
 

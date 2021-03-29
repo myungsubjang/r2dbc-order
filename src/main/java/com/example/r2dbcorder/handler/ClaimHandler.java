@@ -16,7 +16,7 @@ public class ClaimHandler {
 
     public Mono<ServerResponse> cancelOrder(ServerRequest request) {
         return request.bodyToMono(ClaimRequest.class)
-                .log()
+                .flatMap(claimService::cancelOrder)
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
 }

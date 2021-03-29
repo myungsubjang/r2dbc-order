@@ -12,31 +12,31 @@ import reactor.core.publisher.Mono;
 @Configuration
 public class CallbackConfig {
 
-    @Bean
-    public BeforeConvertCallback<OmOd> omOdIdSetCallback() {
-        return (order, table) -> isNewOrder(order) ? Mono.just(setOrderNoAndGet(order)) : Mono.just(order);
-    }
-
-    private boolean isNewOrder(OmOd order) {
-        return !StringUtils.hasText(order.getOdNo());
-    }
-
-    private OmOd setOrderNoAndGet(OmOd order) {
-        return order.withOdNo(TestOrderUtil.generateOrderNumber());
-    }
-
-    @Bean
-    public BeforeConvertCallback<OmOdFvrDtl> omOdFvrDtlIdSetCallback() {
-        return (favorDetail, table) -> isNewFavorDetail(favorDetail) ?
-                Mono.just(setFavorNoAndGetFavorDetail(favorDetail)) : Mono.just(favorDetail);
-    }
-
-    private boolean isNewFavorDetail(OmOdFvrDtl favorDetail) {
-        return !StringUtils.hasText(favorDetail.getOdFvrNo());
-    }
-
-    private OmOdFvrDtl setFavorNoAndGetFavorDetail(OmOdFvrDtl favorDetail) {
-        return favorDetail.withOdFvrNo(TestOrderUtil.generateOrderFavorNumber());
-    }
+//    @Bean
+//    public BeforeConvertCallback<OmOd> omOdIdSetCallback() {
+//        return (order, table) -> isNewOrder(order) ? Mono.just(setOrderNoAndGet(order)) : Mono.just(order);
+//    }
+//
+//    private boolean isNewOrder(OmOd order) {
+//        return !StringUtils.hasText(order.getOdNo());
+//    }
+//
+//    private OmOd setOrderNoAndGet(OmOd order) {
+//        return order.withOdNo(TestOrderUtil.generateOrderNumber());
+//    }
+//
+//    @Bean
+//    public BeforeConvertCallback<OmOdFvrDtl> omOdFvrDtlIdSetCallback() {
+//        return (favorDetail, table) -> isNewFavorDetail(favorDetail) ?
+//                Mono.just(setFavorNoAndGetFavorDetail(favorDetail)) : Mono.just(favorDetail);
+//    }
+//
+//    private boolean isNewFavorDetail(OmOdFvrDtl favorDetail) {
+//        return !StringUtils.hasText(favorDetail.getOdFvrNo());
+//    }
+//
+//    private OmOdFvrDtl setFavorNoAndGetFavorDetail(OmOdFvrDtl favorDetail) {
+//        return favorDetail.withOdFvrNo(TestOrderUtil.generateOrderFavorNumber());
+//    }
 
 }
