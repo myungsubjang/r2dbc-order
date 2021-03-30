@@ -22,6 +22,10 @@ public class OrderFavorDetailDao {
                 .collectList();
     }
 
+    public Mono<OmOdFvrDtl> save(OmOdFvrDtl favorDetail) {
+        return orderFavorDetailRepository.save(favorDetail);
+    }
+
     public Mono<List<OmOdFvrDtl>> findAllByOdNo(String odNo) {
         //validation
         return orderFavorDetailRepository.findByOdNo(odNo)
