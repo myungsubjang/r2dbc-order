@@ -63,4 +63,8 @@ public class OrderDetailDao {
                 .flatMap(i -> orderDetailRepository.findByOdNoAndOdSeqAndProcSeq(orderDetail.getOdNo(), orderDetail.getOdSeq(), orderDetail.getProcSeq()));
     }
 
+    public Mono<Integer> findNextProcSeq(String odNo, int odSeq) {
+        return orderDetailRepository.findNextProcSeq(odNo, odSeq);
+    }
+
 }

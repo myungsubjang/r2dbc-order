@@ -32,6 +32,7 @@ public class RouterConfig {
     RouterFunction<ServerResponse> claimRouter(ClaimHandler claimHandler) {
         return RouterFunctions.route()
                 .POST("/claim/cancel", RequestPredicates.all(), claimHandler::cancelOrder)
+                .POST("/claim/cancel2", RequestPredicates.all(), claimHandler::cancelOrder2)
                 .build();
     }
 }

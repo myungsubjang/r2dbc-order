@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.stream.IntStream;
+
 public class SampleTest {
 
     @Test
@@ -20,6 +22,13 @@ public class SampleTest {
         int number = 1;
         String numberStr = String.format("%05d", number);
         System.out.println(numberStr);
+    }
+
+    @Test
+    void optionalIntTest() {
+        System.out.println(IntStream.range(1, 10)
+                .max()
+                .getAsInt());
     }
 
 }
