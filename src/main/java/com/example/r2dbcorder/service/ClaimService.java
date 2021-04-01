@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,30 +29,32 @@ public class ClaimService {
     private final OrderDetailDao orderDetailDao;
     private final OrderFavorDetailDao orderFavorDetailDao;
 
+    private static final Scheduler SCHEDULER = Schedulers.parallel();
+
     @Transactional
     public Mono<OmOd> cancelOrder(ClaimRequest claimReq) {
         return orderService.findFullOrderByOdNo(claimReq.getOdNo())
                 .flatMap(order -> cancelOrderInternal(order, claimReq));
     }
 
-    private Mono<OmOd> cancelOrderInternal(OmOd beforeOrder, ClaimRequest claimRequest) {
-        return validateOrderForCancel(beforeOrder, claimRequest)
-                .then(Mono.just("claimNo"))
-                .flatMapMany(claimNo -> processCancel(beforeOrder, claimRequest, claimNo))
-                .then(orderDao.saveOrder(beforeOrder))
+    private Mono<OmOd> cancelOrderInternal(OmOd targetOrder, ClaimRequest claimRequest) {
+        return validateOrderForCancel(targetOrder, claimRequest)
+                .then(getClaimNo())
+                .flatMapMany(claimNo -> processCancel(targetOrder, claimRequest, claimNo))
+                .then(updateModdtimeAndGet(targetOrder))
                 .flatMap(order -> orderService.findFullOrderByOdNo(order.getOdNo()));
     }
 
     private Flux<?> processCancel(OmOd beforeOrder, ClaimRequest claimRequest, String claimNo) {
         return Flux.fromIterable(claimRequest.getSeqList())
-                .concatMap(seq -> {
+                .flatMap(seq -> {
                     OmOdDtl matchingDtl = findDtlMatchingSeq(beforeOrder.getOmOdDtlList(), seq);
                     List<OmOdFvrDtl> matchingFvrList = findFvrListMatchingSeq(beforeOrder.getOmOdFvrDtlList(), seq);
-                    return Flux.concat(
+                    return Flux.merge(
                             updateCancelDtl(matchingDtl),
-                            updateCancelFvrList(matchingFvrList),
-                            createCancelDtl(matchingDtl, claimNo).flatMap(dtl -> createCancelFvrList(matchingFvrList, claimNo, dtl.getProcSeq()))
-                    );
+                            updateCancelFvr(matchingFvrList),
+                            createCancelDtl(matchingDtl, claimNo).flatMap(dtl -> createCancelFvr(matchingFvrList, claimNo, dtl.getProcSeq()))
+                    ).subscribeOn(SCHEDULER);
                 });
     }
 
@@ -119,6 +123,10 @@ public class ClaimService {
         return true;
     }
 
+    private Mono<String> getClaimNo() {
+        return Mono.just("claimNo"); //임시
+    }
+
     private Mono<OmOdDtl> updateCancelDtl(OmOdDtl targetDtl) {
         OmOdDtl updateDtl = targetDtl.withCnclQty(targetDtl.getOdQty());
         return Mono.just(updateDtl)
@@ -136,7 +144,7 @@ public class ClaimService {
                 .flatMap(orderDetailDao::save);
     }
 
-    private Mono<List<OmOdFvrDtl>> updateCancelFvrList(List<OmOdFvrDtl> targetFvrList) {
+    private Mono<List<OmOdFvrDtl>> updateCancelFvr(List<OmOdFvrDtl> targetFvrList) {
         return Flux.fromIterable(targetFvrList)
                 .flatMap(targetFvr -> updateCancelFvr(targetFvr))
                 .collectList();
@@ -148,7 +156,7 @@ public class ClaimService {
                 .flatMap(orderFavorDetailDao::save);
     }
 
-    private Mono<List<OmOdFvrDtl>> createCancelFvrList(List<OmOdFvrDtl> targetFvrList, String claimNo, int createdProcSeq) {
+    private Mono<List<OmOdFvrDtl>> createCancelFvr(List<OmOdFvrDtl> targetFvrList, String claimNo, int createdProcSeq) {
         return Flux.fromIterable(targetFvrList)
                 .flatMap(targetFvr -> createCancelFvr(targetFvr, claimNo, createdProcSeq))
                 .collectList();
@@ -161,5 +169,9 @@ public class ClaimService {
                 .withClmNo(claimNo)
                 .withOdFvrNo(null);
         return orderFavorDetailDao.save(cancelFvr);
+    }
+
+    private Mono<OmOd> updateModdtimeAndGet(OmOd targetOrder) {
+        return orderDao.saveOrder(targetOrder);
     }
 }
