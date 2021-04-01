@@ -18,7 +18,6 @@ public class OrderDetailCustomRepositoryImpl implements OrderDetailCustomReposit
 
     @Override
     public Mono<Integer> update(OmOdDtl orderDetail) {
-
         return template.update(
                 Query.query(getDtlCompositeKeyCriteria(orderDetail)),
                 Update.update("od_no", orderDetail.getOdNo())

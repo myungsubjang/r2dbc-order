@@ -24,6 +24,6 @@ public interface OrderDetailRepository extends ReactiveCrudRepository<OmOdDtl, S
 
     Mono<OmOdDtl> findByOdNoAndOdSeqAndProcSeq(String odNo, int odSeq, int procSeq);
 
-    @Query("SELECT COALESCE(MAX(PROC_SEQ) + 1, 0) FROM OM_OD_DTL WHERE OD_NO = :odNo AND OD_SEQ = :odSeq")
+    @Query("SELECT MAX(PROC_SEQ) + 1 FROM OM_OD_DTL WHERE OD_NO = :odNo AND OD_SEQ = :odSeq")
     Mono<Integer> findNextProcSeq(String odNo, int odSeq);
 }

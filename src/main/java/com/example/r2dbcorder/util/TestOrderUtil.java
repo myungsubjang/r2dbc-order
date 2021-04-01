@@ -47,6 +47,7 @@ public class TestOrderUtil {
         List<OmOdDtl> testOrderDetails = createTestOrderDetails(randomNoBoundProductSize(), memberNo);
         newOrder.setOmOdDtlList(testOrderDetails);
 
+//        List<OmOdFvrDtl> testOrderFavorDetails = Collections.emptyList();
         List<OmOdFvrDtl> testOrderFavorDetails = createTestOrderFavorDetails(testOrderDetails);
         newOrder.setOmOdFvrDtlList(testOrderFavorDetails);
         return newOrder;

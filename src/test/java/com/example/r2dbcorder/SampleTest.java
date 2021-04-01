@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
 
 import java.util.stream.IntStream;
 
@@ -25,10 +26,13 @@ public class SampleTest {
     }
 
     @Test
-    void optionalIntTest() {
-        System.out.println(IntStream.range(1, 10)
-                .max()
-                .getAsInt());
+    void contextualTest() {
+        String key = "message";
+        Mono.just("hello")
+                .flatMap(s -> Mono.deferContextual(ctx -> Mono.just(s + " " + ctx.get(key))))
+                .contextWrite(ctx -> ctx.put(key, "World"))
+                .doOnNext(System.out::println)
+                .subscribe();
     }
 
 }

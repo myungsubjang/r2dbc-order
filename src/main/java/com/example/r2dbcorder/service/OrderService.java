@@ -99,8 +99,8 @@ public class OrderService {
 
     private Mono<OmOd> findJustOrderByOdNo(String odNo) {
         return Mono.just(odNo)
-                .flatMap(orderDao::findByOdNo)
-                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
+                .flatMap(orderDao::findByOdNo);
+//                .onErrorReturn(OrderNotFoundException.class, nullOmOd(odNo));
     }
 
     private OmOd nullOmOd(String odNo) {
