@@ -11,14 +11,9 @@ import com.example.r2dbcorder.repository.entity.OmOdFvrDtl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.context.Context;
-import reactor.util.context.ContextView;
-import reactor.util.function.Tuples;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,8 +44,8 @@ public class ClaimService {
     private Flux<?> processCancel(OmOd beforeOrder, ClaimRequest claimRequest, String claimNo) {
         return Flux.fromIterable(claimRequest.getSeqList())
                 .concatMap(seq -> {
-                    OmOdDtl matchingDtl = findDtlMatchingSeq2(beforeOrder.getOmOdDtlList(), seq);
-                    List<OmOdFvrDtl> matchingFvrList = findFvrListMatchingSeq2(beforeOrder.getOmOdFvrDtlList(), seq);
+                    OmOdDtl matchingDtl = findDtlMatchingSeq(beforeOrder.getOmOdDtlList(), seq);
+                    List<OmOdFvrDtl> matchingFvrList = findFvrListMatchingSeq(beforeOrder.getOmOdFvrDtlList(), seq);
                     return Flux.concat(
                             updateCancelDtl(matchingDtl),
                             updateCancelFvrList(matchingFvrList),
@@ -59,19 +54,7 @@ public class ClaimService {
                 });
     }
 
-    private Mono<OmOdDtl> findDtlMatchingSeq(List<OmOdDtl> dtlList, ClaimRequest.Seq seq) {
-        return Flux.fromIterable(dtlList)
-                .filter(dtl -> dtl.getOdSeq() == seq.getOdSeq() && dtl.getProcSeq() == seq.getProcSeq())
-                .single();
-    }
-
-    private Mono<List<OmOdFvrDtl>> findFvrListMatchingSeq(List<OmOdFvrDtl> fvrList, ClaimRequest.Seq seq) {
-        return Flux.fromIterable(fvrList)
-                .filter(fvr -> fvr.getOdSeq() == seq.getOdSeq() && fvr.getProcSeq() == seq.getProcSeq())
-                .collectList();
-    }
-
-    private OmOdDtl findDtlMatchingSeq2(List<OmOdDtl> dtlList, ClaimRequest.Seq seq) {
+    private OmOdDtl findDtlMatchingSeq(List<OmOdDtl> dtlList, ClaimRequest.Seq seq) {
         Optional<OmOdDtl> optionalDtl = dtlList.stream()
                 .filter(dtl -> dtl.getOdSeq() == seq.getOdSeq() && dtl.getProcSeq() == seq.getProcSeq())
                 .findAny();
@@ -81,7 +64,7 @@ public class ClaimService {
         throw new OrderNotFoundException("order detail not found exception.");
     }
 
-    private List<OmOdFvrDtl> findFvrListMatchingSeq2(List<OmOdFvrDtl> fvrList, ClaimRequest.Seq seq) {
+    private List<OmOdFvrDtl> findFvrListMatchingSeq(List<OmOdFvrDtl> fvrList, ClaimRequest.Seq seq) {
         return fvrList.stream()
                 .filter(fvr -> fvr.getOdSeq() == seq.getOdSeq() && fvr.getProcSeq() == seq.getProcSeq())
                 .collect(Collectors.toList());
@@ -96,7 +79,7 @@ public class ClaimService {
 
     private Flux<OmOdDtl> validateDtlListForCancel(List<OmOdDtl> dtlList, List<ClaimRequest.Seq> seqList) {
         Flux<OmOdDtl> matchingDtl = Flux.fromIterable(seqList)
-                .flatMap(seq -> findDtlMatchingSeq(dtlList, seq))
+                .map(seq -> findDtlMatchingSeq(dtlList, seq))
                 .switchIfEmpty(Flux.error(new RuntimeException("there are no detail")));
         return validateDtlForCancel(matchingDtl);
     }
@@ -117,7 +100,7 @@ public class ClaimService {
 
     private Flux<List<OmOdFvrDtl>> validateFvrListForCancel(List<OmOdFvrDtl> fvrList, List<ClaimRequest.Seq> seqList) {
         Flux<List<OmOdFvrDtl>> matchingFvrListFlux = Flux.fromIterable(seqList)
-                .flatMap(seq -> findFvrListMatchingSeq(fvrList, seq))
+                .map(seq -> findFvrListMatchingSeq(fvrList, seq))
                 .switchIfEmpty(Flux.error(new RuntimeException("there are no favor")));
         return validateFvrListForCancel(matchingFvrListFlux);
     }
