@@ -1,6 +1,7 @@
 package com.example.r2dbcorder.service;
 
 import com.example.r2dbcorder.dto.ClaimRequest;
+import com.example.r2dbcorder.exceptions.OrderNotFoundException;
 import com.example.r2dbcorder.repository.dao.OrderDao;
 import com.example.r2dbcorder.repository.dao.OrderDetailDao;
 import com.example.r2dbcorder.repository.dao.OrderFavorDetailDao;
@@ -19,6 +20,8 @@ import reactor.util.function.Tuples;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -46,15 +49,13 @@ public class ClaimService {
     private Flux<?> processCancel(OmOd beforeOrder, ClaimRequest claimRequest, String claimNo) {
         return Flux.fromIterable(claimRequest.getSeqList())
                 .concatMap(seq -> {
-                    Mono<OmOdDtl> matchingDtl = findDtlMatchingSeq(beforeOrder.getOmOdDtlList(), seq).cache();
-                    Mono<List<OmOdFvrDtl>> matchingFvrList = findFvrListMatchingSeq(beforeOrder.getOmOdFvrDtlList(), seq).cache();
-                    return matchingDtl.flatMap(dtl -> updateCancelDtl(dtl))
-                            .then(matchingFvrList)
-                            .flatMap(fvrList -> updateCancelFvrList(fvrList))
-                            .then(matchingDtl)
-                            .flatMap(dtl -> createCancelDtl(dtl, claimNo))
-                            .zipWith(matchingFvrList)
-                            .flatMap(tuple -> createCancelFvrList(tuple.getT2(), claimNo, tuple.getT1().getProcSeq()));
+                    OmOdDtl matchingDtl = findDtlMatchingSeq2(beforeOrder.getOmOdDtlList(), seq);
+                    List<OmOdFvrDtl> matchingFvrList = findFvrListMatchingSeq2(beforeOrder.getOmOdFvrDtlList(), seq);
+                    return Flux.concat(
+                            updateCancelDtl(matchingDtl),
+                            updateCancelFvrList(matchingFvrList),
+                            createCancelDtl(matchingDtl, claimNo).flatMap(dtl -> createCancelFvrList(matchingFvrList, claimNo, dtl.getProcSeq()))
+                    );
                 });
     }
 
@@ -68,6 +69,22 @@ public class ClaimService {
         return Flux.fromIterable(fvrList)
                 .filter(fvr -> fvr.getOdSeq() == seq.getOdSeq() && fvr.getProcSeq() == seq.getProcSeq())
                 .collectList();
+    }
+
+    private OmOdDtl findDtlMatchingSeq2(List<OmOdDtl> dtlList, ClaimRequest.Seq seq) {
+        Optional<OmOdDtl> optionalDtl = dtlList.stream()
+                .filter(dtl -> dtl.getOdSeq() == seq.getOdSeq() && dtl.getProcSeq() == seq.getProcSeq())
+                .findAny();
+        if (optionalDtl.isPresent()) {
+            return optionalDtl.get();
+        }
+        throw new OrderNotFoundException("order detail not found exception.");
+    }
+
+    private List<OmOdFvrDtl> findFvrListMatchingSeq2(List<OmOdFvrDtl> fvrList, ClaimRequest.Seq seq) {
+        return fvrList.stream()
+                .filter(fvr -> fvr.getOdSeq() == seq.getOdSeq() && fvr.getProcSeq() == seq.getProcSeq())
+                .collect(Collectors.toList());
     }
 
     private Flux<?> validateOrderForCancel(OmOd beforeOrder, ClaimRequest claimRequest) {
@@ -101,14 +118,14 @@ public class ClaimService {
     private Flux<List<OmOdFvrDtl>> validateFvrListForCancel(List<OmOdFvrDtl> fvrList, List<ClaimRequest.Seq> seqList) {
         Flux<List<OmOdFvrDtl>> matchingFvrListFlux = Flux.fromIterable(seqList)
                 .flatMap(seq -> findFvrListMatchingSeq(fvrList, seq))
-                .switchIfEmpty(Flux.error(new RuntimeException("there are no detail")));
+                .switchIfEmpty(Flux.error(new RuntimeException("there are no favor")));
         return validateFvrListForCancel(matchingFvrListFlux);
     }
 
     private Flux<List<OmOdFvrDtl>> validateFvrListForCancel(Flux<List<OmOdFvrDtl>> fvrDtlFlux) {
         return fvrDtlFlux.handle((fvrList, sink) -> {
             if (!isValidToCancelFvr(fvrList)) {
-                sink.error(new RuntimeException("not valid order detail"));
+                sink.error(new RuntimeException("not valid order favor"));
             }
             sink.next(fvrList);
         });

@@ -5,11 +5,13 @@ import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.relational.core.query.Criteria;
-import org.springframework.data.relational.core.query.Query;
 import org.springframework.data.relational.core.query.Update;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+
+import static org.springframework.data.relational.core.query.Query.*;
+import static org.springframework.data.relational.core.query.Criteria.*;
 
 @RequiredArgsConstructor
 public class OrderDetailCustomRepositoryImpl implements OrderDetailCustomRepository {
@@ -19,7 +21,7 @@ public class OrderDetailCustomRepositoryImpl implements OrderDetailCustomReposit
     @Override
     public Mono<Integer> update(OmOdDtl orderDetail) {
         return template.update(
-                Query.query(getDtlCompositeKeyCriteria(orderDetail)),
+                query(getDtlCompositeKeyCriteria(orderDetail)),
                 Update.update("od_no", orderDetail.getOdNo())
                     .set("od_seq", orderDetail.getOdSeq())
                     .set("proc_seq", orderDetail.getProcSeq())
@@ -46,7 +48,7 @@ public class OrderDetailCustomRepositoryImpl implements OrderDetailCustomReposit
     }
 
     private Criteria getDtlCompositeKeyCriteria(OmOdDtl orderDetail) {
-        return Criteria.where("od_no").is(orderDetail.getOdNo())
+        return where("od_no").is(orderDetail.getOdNo())
                 .and("od_seq").is(orderDetail.getOdSeq())
                 .and("proc_seq").is(orderDetail.getProcSeq());
     }
