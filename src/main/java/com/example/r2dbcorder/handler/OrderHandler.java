@@ -74,4 +74,10 @@ public class OrderHandler {
         return orderService.findOrderListContainCancelFullDtl()
                 .flatMap(ServerResponse.ok()::bodyValue);
     }
+
+    public Mono<ServerResponse> joinPractice(ServerRequest request) {
+        return orderService.joinPractice(request.pathVariable("odNo"))
+                .collectList()
+                .flatMap(ServerResponse.ok()::bodyValue);
+    }
 }

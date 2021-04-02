@@ -67,15 +67,15 @@ public class TestOrderUtil {
             orderDetail.setOdSeq(i + 1);
             orderDetailList.add(orderDetail);
             //임시 취소데이터 생성
-            if (orderDtlSize == 3 && i + 1 == 3) {
-                OmOdDtl cancelDtl = new OmOdDtl();
-                BeanUtils.copyProperties(orderDetail, cancelDtl);
-                cancelDtl.setProcSeq(2);
-                cancelDtl.setOrglProcSeq(1);
-                cancelDtl.setOdTypCd("20");
-                cancelDtl.setCnclQty(cancelDtl.getOdQty());
-                orderDetailList.add(cancelDtl);
-            }
+//            if (orderDtlSize == 3 && i + 1 == 3) {
+//                OmOdDtl cancelDtl = new OmOdDtl();
+//                BeanUtils.copyProperties(orderDetail, cancelDtl);
+//                cancelDtl.setProcSeq(2);
+//                cancelDtl.setOrglProcSeq(1);
+//                cancelDtl.setOdTypCd("20");
+//                cancelDtl.setCnclQty(cancelDtl.getOdQty());
+//                orderDetailList.add(cancelDtl);
+//            }
         }
         return orderDetailList;
     }

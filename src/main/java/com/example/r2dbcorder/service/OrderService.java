@@ -3,6 +3,7 @@ package com.example.r2dbcorder.service;
 import com.example.r2dbcorder.dto.DtoSample;
 import com.example.r2dbcorder.dto.IOdDtlDto;
 import com.example.r2dbcorder.dto.OdDtlDto;
+import com.example.r2dbcorder.dto.OmOdDtlFvrDtlDto;
 import com.example.r2dbcorder.repository.dao.OrderDetailDao;
 import com.example.r2dbcorder.repository.dao.OrderFavorDetailDao;
 import com.example.r2dbcorder.repository.dao.OrderDao;
@@ -191,5 +192,8 @@ public class OrderService {
         return orderDetailDao.findTypeByOdNo(odNo, IOdDtlDto.class);
     }
 
+    public Flux<OmOdDtlFvrDtlDto> joinPractice(String odNo) {
+        return orderDetailDao.joinPractice(odNo);
+    }
 
 }

@@ -104,8 +104,7 @@ public class ClaimService {
 
     private Flux<List<OmOdFvrDtl>> validateFvrListForCancel(List<OmOdFvrDtl> fvrList, List<ClaimRequest.Seq> seqList) {
         Flux<List<OmOdFvrDtl>> matchingFvrListFlux = Flux.fromIterable(seqList)
-                .map(seq -> findFvrListMatchingSeq(fvrList, seq))
-                .switchIfEmpty(Flux.error(new RuntimeException("there are no favor")));
+                .map(seq -> findFvrListMatchingSeq(fvrList, seq));
         return validateFvrListForCancel(matchingFvrListFlux);
     }
 

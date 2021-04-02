@@ -2,6 +2,7 @@ package com.example.r2dbcorder.repository.dao;
 
 import com.example.r2dbcorder.dto.IOdDtlDto;
 import com.example.r2dbcorder.dto.OdDtlDto;
+import com.example.r2dbcorder.dto.OmOdDtlFvrDtlDto;
 import com.example.r2dbcorder.repository.OrderDetailRepository;
 import com.example.r2dbcorder.repository.entity.OmOdDtl;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,10 @@ public class OrderDetailDao {
 
     public Mono<Integer> findNextProcSeq(String odNo, int odSeq) {
         return orderDetailRepository.findNextProcSeq(odNo, odSeq);
+    }
+
+    public Flux<OmOdDtlFvrDtlDto> joinPractice(String odNo) {
+        return orderDetailRepository.joinPractice(odNo);
     }
 
 }
